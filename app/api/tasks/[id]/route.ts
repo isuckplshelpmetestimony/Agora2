@@ -6,9 +6,43 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   const { id } = params;
   try {
     const data = await req.json();
+    let { title, status, assigneeId, boardId, description, dueDate, priority } = data;
+    // Validate required fields
+    if (!title || !status || !assigneeId || !boardId) {
+      return NextResponse.json({ error: 'Missing required fields: title, status, assigneeId, boardId' }, { status: 400 });
+    }
+    // Validate priority
+    const validPriorities = ['LOW', 'MEDIUM', 'HIGH'];
+    if (priority) {
+      priority = priority.toUpperCase();
+      if (!validPriorities.includes(priority)) {
+        return NextResponse.json({ error: 'Invalid priority. Must be LOW, MEDIUM, or HIGH.' }, { status: 400 });
+      }
+    } else {
+      priority = 'MEDIUM';
+    }
+    // Check if assignee exists
+    const assignee = await prisma.user.findUnique({ where: { id: assigneeId } });
+    if (!assignee) {
+      return NextResponse.json({ error: 'Assignee not found' }, { status: 404 });
+    }
+    // Check if board exists
+    const board = await prisma.board.findUnique({ where: { id: boardId } });
+    if (!board) {
+      return NextResponse.json({ error: 'Board not found' }, { status: 404 });
+    }
     const task = await prisma.task.update({
       where: { id },
-      data,
+      data: {
+        title,
+        status,
+        assigneeId,
+        boardId,
+        description,
+        dueDate: dueDate ? new Date(dueDate) : undefined,
+        priority,
+      },
+      include: { assignee: true },
     });
     return NextResponse.json(task);
   } catch (error) {

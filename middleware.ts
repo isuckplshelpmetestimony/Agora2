@@ -3,6 +3,11 @@ import { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 export async function middleware(request: NextRequest) {
+  // Bypass auth in development
+  if (process.env.NODE_ENV !== 'production') {
+    return NextResponse.next();
+  }
+
   const { pathname } = request.nextUrl;
   
   // Define public routes that don't require authentication
