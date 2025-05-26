@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import useSWR from 'swr';
 
 const STATUS_COLUMNS = [
   { id: "TODO", title: "To Do" },
@@ -51,10 +52,16 @@ export default function QuickFlow() {
     dueDate: "",
     assigneeId: "",
     boardId: "",
+    sprintId: "",
   })
   const [users, setUsers] = useState<{id: string, name?: string, email?: string}[]>([])
   const [boards, setBoards] = useState<{id: string, name: string}[]>([])
   const [draggedTask, setDraggedTask] = useState<Task | null>(null)
+
+  // Fetch current sprint (same as SprintSnap)
+  const fetcher = (url: string) => fetch(url).then(res => res.json());
+  const { data: sprints } = useSWR('/api/sprints', fetcher);
+  const currentSprint = sprints?.[0];
 
   // Fetch users and boards for form dropdowns
   useEffect(() => {
@@ -99,7 +106,7 @@ export default function QuickFlow() {
     fetch(`/api/tasks/${draggedTask.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...draggedTask, status }),
+      body: JSON.stringify({ ...draggedTask, status, sprintId: currentSprint?.id || undefined }),
     })
       .then(r => r.json())
       .then(() => {
@@ -110,25 +117,38 @@ export default function QuickFlow() {
   }
 
   // Handle create task
-  const handleCreate = () => {
+  const handleCreate = async () => {
     setCreating(true)
     setCreateError("")
-    fetch("/api/tasks", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    })
-      .then(async r => {
-        if (!r.ok) throw new Error((await r.json()).error)
-        return r.json()
-      })
-      .then(() => {
-        setShowCreate(false)
-        setForm({ title: "", description: "", status: "TODO", priority: "MEDIUM", dueDate: "", assigneeId: "", boardId: "" })
-        fetchTasks()
-      })
-      .catch(e => setCreateError(e.message || "Failed to create task."))
-      .finally(() => setCreating(false))
+    // Validate required fields
+    if (!form.title || !form.status || !form.assigneeId || !form.boardId) {
+      setCreateError("All fields are required.");
+      setCreating(false);
+      return;
+    }
+    // Format dueDate as ISO string if present
+    const dueDate = form.dueDate ? new Date(form.dueDate).toISOString() : undefined;
+    const payload = { ...form, dueDate, sprintId: currentSprint?.id || undefined };
+    console.log("Create Task Payload:", payload);
+    try {
+      const res = await fetch("/api/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCreateError(data?.error || "Failed to create task.");
+        return;
+      }
+      setShowCreate(false)
+      setForm({ title: "", description: "", status: "TODO", priority: "MEDIUM", dueDate: "", assigneeId: "", boardId: "", sprintId: "" })
+      fetchTasks()
+    } catch (e) {
+      setCreateError("Failed to create task.");
+    } finally {
+      setCreating(false)
+    }
   }
 
   const getPriorityBadge = (priority: string) => {
@@ -252,7 +272,9 @@ export default function QuickFlow() {
             {createError && <div className="text-red-500 text-sm">{createError}</div>}
           </div>
           <DialogFooter>
-            <Button onClick={handleCreate} disabled={creating}>{creating ? "Creating..." : "Create Task"}</Button>
+            <Button onClick={handleCreate} disabled={creating || !form.title || !form.status || !form.assigneeId || !form.boardId}>
+              {creating ? "Creating..." : "Create Task"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

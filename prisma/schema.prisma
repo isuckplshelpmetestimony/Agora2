@@ -49,6 +49,7 @@ model User {
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
   preferences   Json?      @default("{}")
+  role          String?
   accounts      Account[]
   activities    Activity[]
   sessions      Session[]
@@ -90,11 +91,14 @@ model Task {
   dueDate     DateTime?
   boardId     String
   assigneeId  String
+  sprintId    String?
+  storyPoints Int?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   priority    Priority  @default(MEDIUM)
   assignee    User      @relation("UserAssignedTasks", fields: [assigneeId], references: [id], onDelete: Cascade)
   board       Board     @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  sprint      Sprint?   @relation(fields: [sprintId], references: [id], onDelete: Cascade)
 }
 
 model Event {
@@ -107,6 +111,17 @@ model Event {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   attendees   User[]    @relation("EventAttendees")
+}
+
+model Sprint {
+  id              String   @id @default(cuid())
+  startDate       DateTime
+  endDate         DateTime
+  velocity        Int?
+  health          String?
+  burndownData    Json?
+  teamPerformance Json?
+  tasks           Task[]
 }
 
 enum Priority {

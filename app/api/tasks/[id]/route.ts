@@ -6,7 +6,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   const { id } = params;
   try {
     const data = await req.json();
-    let { title, status, assigneeId, boardId, description, dueDate, priority } = data;
+    let { title, status, assigneeId, boardId, description, dueDate, priority, sprintId } = data;
     // Validate required fields
     if (!title || !status || !assigneeId || !boardId) {
       return NextResponse.json({ error: 'Missing required fields: title, status, assigneeId, boardId' }, { status: 400 });
@@ -41,6 +41,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         description,
         dueDate: dueDate ? new Date(dueDate) : undefined,
         priority,
+        sprintId,
       },
       include: { assignee: true },
     });

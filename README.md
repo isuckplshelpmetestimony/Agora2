@@ -58,3 +58,13 @@ Or, for watch mode (runs tests on file changes):
 ```
 npm run test -- --watch
 ```
+
+## Running the Local Development Server
+
+To start the local development server:
+
+```
+npm run dev
+```
+
+This will start the server at [http://localhost:3000](http://localhost:3000).
