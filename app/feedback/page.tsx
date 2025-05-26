@@ -1,3 +1,5 @@
+'use client';
+
 import { DashboardHeader } from "@/components/dashboard-header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -6,84 +8,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { MessageSquare, Plus, ThumbsUp, Filter } from "lucide-react"
+import { useFeedbackList } from '@/lib/feedback-hooks'
 
 export default function FeedbackForum() {
-  const feedbackItems = [
-    {
-      id: 1,
-      title: "Improve task filtering options",
-      description:
-        "It would be helpful to have more advanced filtering options for tasks, such as filtering by multiple tags or assignees.",
-      author: {
-        name: "Emily Chen",
-        avatar: "/placeholder-user.jpg",
-        initials: "EC",
-      },
-      category: "feature",
-      votes: 12,
-      comments: 5,
-      status: "under-review",
-    },
-    {
-      id: 2,
-      title: "Add dark mode support",
-      description:
-        "Would love to have a dark mode option for the entire application to reduce eye strain during night work sessions.",
-      author: {
-        name: "John Smith",
-        avatar: "/placeholder-user.jpg",
-        initials: "JS",
-      },
-      category: "feature",
-      votes: 24,
-      comments: 8,
-      status: "planned",
-    },
-    {
-      id: 3,
-      title: "Calendar sync with Google Calendar",
-      description:
-        "It would be great if we could sync our SpeedSync calendar with Google Calendar to avoid scheduling conflicts.",
-      author: {
-        name: "Sarah Wilson",
-        avatar: "/placeholder-user.jpg",
-        initials: "SW",
-      },
-      category: "integration",
-      votes: 18,
-      comments: 3,
-      status: "under-review",
-    },
-    {
-      id: 4,
-      title: "Mobile app for on-the-go access",
-      description: "A mobile app would make it easier to check tasks and updates when away from the computer.",
-      author: {
-        name: "Michael Brown",
-        avatar: "/placeholder-user.jpg",
-        initials: "MB",
-      },
-      category: "feature",
-      votes: 32,
-      comments: 12,
-      status: "planned",
-    },
-    {
-      id: 5,
-      title: "Fix lag when dragging tasks in QuickFlow",
-      description:
-        "There's a noticeable lag when dragging tasks between columns in QuickFlow, especially with many tasks.",
-      author: {
-        name: "Jane Doe",
-        avatar: "/placeholder-user.jpg",
-        initials: "JD",
-      },
-      category: "bug",
-      votes: 8,
-      comments: 4,
-      status: "in-progress",
-    },
-  ]
+  const { feedback, isLoading, error } = useFeedbackList();
 
   const getCategoryBadge = (category: string) => {
     switch (category) {
@@ -192,20 +120,22 @@ export default function FeedbackForum() {
               </TabsList>
 
               <TabsContent value="all" className="space-y-4">
-                {feedbackItems.map((item) => (
+                {isLoading && <div>Loading...</div>}
+                {error && <div className="text-red-500">Failed to load feedback.</div>}
+                {feedback && feedback.map((item: any) => (
                   <Card key={item.id} className="border-none shadow-sm">
                     <CardHeader className="pb-2">
                       <div className="flex justify-between">
                         <div className="space-y-1">
                           <CardTitle className="text-base">{item.title}</CardTitle>
                           <div className="flex items-center gap-2">
-                            {getCategoryBadge(item.category)}
-                            {getStatusBadge(item.status)}
+                            {getCategoryBadge(item.category.toLowerCase())}
+                            {getStatusBadge(item.status.replace('_', '-').toLowerCase())}
                           </div>
                         </div>
                         <Button variant="outline" size="sm" className="gap-1">
                           <ThumbsUp className="h-4 w-4" />
-                          {item.votes}
+                          {item.upvotes}
                         </Button>
                       </div>
                     </CardHeader>
@@ -215,16 +145,16 @@ export default function FeedbackForum() {
                     <CardFooter className="flex justify-between">
                       <div className="flex items-center gap-2">
                         <Avatar className="h-6 w-6">
-                          <AvatarImage src={item.author.avatar || "/placeholder.svg"} alt={item.author.name} />
+                          <AvatarImage src={"/placeholder-user.jpg"} alt={item.author?.name || 'User'} />
                           <AvatarFallback className="bg-amber-100 text-amber-800 text-xs">
-                            {item.author.initials}
+                            {item.author?.name?.split(' ').map((n: string) => n[0]).join('') || '?'}
                           </AvatarFallback>
                         </Avatar>
-                        <span className="text-xs text-muted-foreground">{item.author.name}</span>
+                        <span className="text-xs text-muted-foreground">{item.author?.name || 'Anonymous'}</span>
                       </div>
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
                         <MessageSquare className="h-3 w-3" />
-                        {item.comments} comments
+                        {item._count?.comments ?? 0} comments
                       </div>
                     </CardFooter>
                   </Card>

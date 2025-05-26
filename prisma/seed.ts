@@ -109,9 +109,77 @@ async function main() {
     skipDuplicates: true,
   });
 
+  // Create feedback items
+  const feedback1 = await prisma.feedback.create({
+    data: {
+      title: 'Improve task filtering options',
+      description: 'It would be helpful to have more advanced filtering options for tasks, such as filtering by multiple tags or assignees.',
+      category: 'FEATURE',
+      status: 'UNDER_REVIEW',
+      upvotes: 12,
+      authorId: user.id,
+    },
+  });
+  const feedback2 = await prisma.feedback.create({
+    data: {
+      title: 'Add dark mode support',
+      description: 'Would love to have a dark mode option for the entire application to reduce eye strain during night work sessions.',
+      category: 'FEATURE',
+      status: 'PLANNED',
+      upvotes: 24,
+      authorId: user2.id,
+    },
+  });
+  const feedback3 = await prisma.feedback.create({
+    data: {
+      title: 'Calendar sync with Google Calendar',
+      description: 'It would be great if we could sync our SpeedSync calendar with Google Calendar to avoid scheduling conflicts.',
+      category: 'INTEGRATION',
+      status: 'UNDER_REVIEW',
+      upvotes: 18,
+      authorId: user2.id,
+    },
+  });
+  const feedback4 = await prisma.feedback.create({
+    data: {
+      title: 'Mobile app for on-the-go access',
+      description: 'A mobile app would make it easier to check tasks and updates when away from the computer.',
+      category: 'FEATURE',
+      status: 'PLANNED',
+      upvotes: 32,
+      authorId: user.id,
+    },
+  });
+  const feedback5 = await prisma.feedback.create({
+    data: {
+      title: 'Fix lag when dragging tasks in QuickFlow',
+      description: 'There\'s a noticeable lag when dragging tasks between columns in QuickFlow, especially with many tasks.',
+      category: 'BUG',
+      status: 'IN_PROGRESS',
+      upvotes: 8,
+      authorId: user.id,
+    },
+  });
+
+  // Add anonymous comments to feedback items
+  await prisma.feedbackComment.createMany({
+    data: [
+      { feedbackId: feedback1.id, content: 'This would make my workflow so much easier!' },
+      { feedbackId: feedback1.id, content: 'Filtering by assignee is a must.' },
+      { feedbackId: feedback2.id, content: 'Dark mode would be amazing for late night work.' },
+      { feedbackId: feedback2.id, content: 'Please add this soon!' },
+      { feedbackId: feedback3.id, content: 'Google Calendar sync would help avoid double bookings.' },
+      { feedbackId: feedback4.id, content: 'A mobile app is essential for remote teams.' },
+      { feedbackId: feedback4.id, content: 'Would love push notifications too.' },
+      { feedbackId: feedback5.id, content: 'The lag is really noticeable with lots of tasks.' },
+      { feedbackId: feedback5.id, content: 'Hope this gets fixed soon!' },
+    ],
+  });
+
   console.log('Seeded users:', user, user2);
   console.log('Seeded board:', board);
   console.log('Seeded sprint:', sprint);
+  console.log('Seeded feedback and comments.');
 }
 
 main()

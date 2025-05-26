@@ -55,6 +55,8 @@ model User {
   sessions      Session[]
   assignedTasks Task[]     @relation("UserAssignedTasks")
   events        Event[]    @relation("EventAttendees")
+  feedbacks     Feedback[] @relation("UserFeedbacks")
+  upvotes       Upvote[]   @relation("UserUpvotes")
 }
 
 model VerificationToken {
@@ -122,6 +124,55 @@ model Sprint {
   burndownData    Json?
   teamPerformance Json?
   tasks           Task[]
+}
+
+// Feedback Forum Models
+model Feedback {
+  id          String           @id @default(cuid())
+  title       String
+  description String
+  category    FeedbackCategory
+  status      FeedbackStatus
+  upvotes     Int              @default(0)
+  authorId    String
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  author      User             @relation("UserFeedbacks", fields: [authorId], references: [id], onDelete: Cascade)
+  comments    FeedbackComment[]
+  upvoteUsers Upvote[]         @relation("FeedbackUpvotes")
+}
+
+model FeedbackComment {
+  id         String   @id @default(cuid())
+  feedbackId String
+  content    String
+  createdAt  DateTime @default(now())
+  feedback   Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+}
+
+// Optional: Prevent duplicate upvotes per user
+model Upvote {
+  id         String   @id @default(cuid())
+  feedbackId String
+  userId     String
+  feedback   Feedback @relation("FeedbackUpvotes", fields: [feedbackId], references: [id], onDelete: Cascade)
+  user       User     @relation("UserUpvotes", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([feedbackId, userId])
+}
+
+enum FeedbackCategory {
+  FEATURE
+  BUG
+  INTEGRATION
+  OTHER
+}
+
+enum FeedbackStatus {
+  PLANNED
+  IN_PROGRESS
+  UNDER_REVIEW
+  COMPLETED
 }
 
 enum Priority {
