@@ -57,6 +57,8 @@ model User {
   events        Event[]    @relation("EventAttendees")
   feedbacks     Feedback[] @relation("UserFeedbacks")
   upvotes       Upvote[]   @relation("UserUpvotes")
+  simpleFeedbackAboutMe FeedbackCommentSimple[] @relation("UserSimpleFeedbackAboutMe")
+  simpleFeedbackLikes FeedbackCommentLike[] @relation("UserSimpleFeedbackLikes")
 }
 
 model VerificationToken {
@@ -184,4 +186,26 @@ enum Priority {
 enum EventType {
   RECURRING
   ONE_TIME
+}
+
+// Simple Feedback Wall (Ephemeral, Anonymous)
+model FeedbackCommentSimple {
+  id          String   @id @default(cuid())
+  content     String
+  aboutUserId String
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime
+  likeCount   Int      @default(0)
+  aboutUser   User     @relation("UserSimpleFeedbackAboutMe", fields: [aboutUserId], references: [id], onDelete: Cascade)
+  likes       FeedbackCommentLike[]
+}
+
+model FeedbackCommentLike {
+  id        String   @id @default(cuid())
+  commentId String
+  userId    String
+  comment   FeedbackCommentSimple @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      User                  @relation("UserSimpleFeedbackLikes", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, userId])
 }

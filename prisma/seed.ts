@@ -176,10 +176,53 @@ async function main() {
     ],
   });
 
+  // Seed simple feedback wall comments (ephemeral, anonymous)
+  const now = new Date();
+  const fiveDaysLater = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000);
+
+  const simpleComment1 = await prisma.feedbackCommentSimple.create({
+    data: {
+      content: 'Jane is always willing to help out!',
+      aboutUserId: user.id,
+      createdAt: now,
+      expiresAt: fiveDaysLater,
+      likeCount: 2,
+    },
+  });
+  const simpleComment2 = await prisma.feedbackCommentSimple.create({
+    data: {
+      content: 'John brings great ideas to the table.',
+      aboutUserId: user2.id,
+      createdAt: now,
+      expiresAt: fiveDaysLater,
+      likeCount: 1,
+    },
+  });
+  const simpleComment3 = await prisma.feedbackCommentSimple.create({
+    data: {
+      content: 'Jane is a fantastic team player.',
+      aboutUserId: user.id,
+      createdAt: now,
+      expiresAt: fiveDaysLater,
+      likeCount: 0,
+    },
+  });
+
+  // Add likes (simulate different users liking comments)
+  await prisma.feedbackCommentLike.createMany({
+    data: [
+      { commentId: simpleComment1.id, userId: user.id },
+      { commentId: simpleComment1.id, userId: user2.id },
+      { commentId: simpleComment2.id, userId: user.id },
+    ],
+    skipDuplicates: true,
+  });
+
   console.log('Seeded users:', user, user2);
   console.log('Seeded board:', board);
   console.log('Seeded sprint:', sprint);
   console.log('Seeded feedback and comments.');
+  console.log('Seeded simple feedback wall comments and likes.');
 }
 
 main()

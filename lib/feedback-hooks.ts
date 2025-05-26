@@ -69,4 +69,32 @@ export function useFeedbackComments(feedbackId?: string) {
     return res.json();
   };
   return { comments: data, error, isLoading, refresh, postComment };
+}
+
+// Fetch all non-expired simple feedback comments
+export function useSimpleFeedbackComments() {
+  const { data, error, isLoading, mutate } = useSWR('/api/feedback-comments', fetcher);
+  return { comments: data, error, isLoading, refresh: mutate };
+}
+
+// Create a new simple feedback comment
+export async function createSimpleFeedbackComment({ content, aboutUserId }: { content: string; aboutUserId: string }) {
+  const res = await fetch('/api/feedback-comments', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content, aboutUserId }),
+  });
+  if (!res.ok) throw new Error('Failed to create comment');
+  return res.json();
+}
+
+// Like a simple feedback comment
+export async function likeSimpleFeedbackComment({ commentId, userId }: { commentId: string; userId: string }) {
+  const res = await fetch(`/api/feedback-comments/${commentId}/like`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId }),
+  });
+  if (!res.ok) throw new Error('Failed to like comment');
+  return res.json();
 } 
