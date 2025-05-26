@@ -29,6 +29,22 @@ Continue building your app on:
 3. Changes are automatically pushed to this repository
 4. Vercel deploys the latest version from this repository
 
+## Database Setup
+
+This project uses Prisma for database management. The database connection string is set via the `DATABASE_URL` environment variable in your `.env` file.
+
+To run database migrations:
+
+```
+npx prisma migrate dev
+```
+
+Or, to generate the Prisma client after changing the schema:
+
+```
+npx prisma generate
+```
+
 ## Running Automated Tests
 
 To run the automated Jest tests:

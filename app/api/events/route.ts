@@ -81,6 +81,7 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json(event, { status: 201 });
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ error: 'Failed to create event', details: error instanceof Error ? error.message : error }, { status: 500 });
   }
 } 
