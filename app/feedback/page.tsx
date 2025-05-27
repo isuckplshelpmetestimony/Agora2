@@ -48,72 +48,74 @@ export default function FeedbackForum() {
   return (
     <div className="flex flex-col h-screen">
       <DashboardHeader />
-      <div className="flex-1 p-6 md:p-8 overflow-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Feedback Forum</h1>
-            <p className="text-muted-foreground">Leave an anonymous sticky note for your teammates</p>
+      <div className="flex-1 flex p-6 md:p-8 overflow-auto overflow-hidden">
+        <div className="w-full grow">
+          <div className="flex items-center justify-between mb-6 w-full">
+            <div className="w-full">
+              <h1 className="text-2xl font-bold tracking-tight">Feedback Forum</h1>
+              <p className="text-muted-foreground">Leave an anonymous sticky note for your teammates</p>
+            </div>
           </div>
-        </div>
 
-        <form onSubmit={handleSubmit} className="mb-8 flex flex-col md:flex-row gap-2 items-center">
-          <select
-            className="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
-            value={aboutUserId}
-            onChange={e => setAboutUserId(e.target.value)}
-          >
-            {users.map(u => (
-              <option key={u.id} value={u.id}>{u.name}</option>
+          <form onSubmit={handleSubmit} className="mb-8 flex flex-col md:flex-row gap-2 items-center w-full">
+            <select
+              className="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 w-full md:w-auto"
+              value={aboutUserId}
+              onChange={e => setAboutUserId(e.target.value)}
+            >
+              {users.map(u => (
+                <option key={u.id} value={u.id}>{u.name}</option>
+              ))}
+            </select>
+            <Input
+              className="flex-1 w-full"
+              placeholder="Write something nice..."
+              value={content}
+              onChange={e => setContent(e.target.value)}
+              maxLength={200}
+              disabled={submitting}
+            />
+            <Button type="submit" disabled={submitting || !content.trim()} className="w-full md:w-auto">
+              {submitting ? 'Posting...' : 'Post'}
+            </Button>
+          </form>
+
+          <div className="space-y-4 w-full">
+            {isLoading && <div>Loading...</div>}
+            {error && <div className="text-red-500">Failed to load feedback.</div>}
+            {comments && comments.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground w-full">No feedback found.</div>
+            )}
+            {comments && comments.map((item: any) => (
+              <Card key={item.id} className="border-none shadow-sm w-full">
+                <CardHeader className="pb-2 flex flex-row items-center gap-3 w-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={item.aboutUser?.image || "/placeholder-user.jpg"} alt={item.aboutUser?.name || 'User'} />
+                    <AvatarFallback className="bg-amber-100 text-amber-800 text-xs">
+                      {item.aboutUser?.name?.split(' ').map((n: string) => n[0]).join('') || '?'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm font-medium text-amber-900">{item.aboutUser?.name || 'User'}</span>
+                </CardHeader>
+                <CardContent className="w-full">
+                  <p className="text-base text-muted-foreground w-full">{item.content}</p>
+                </CardContent>
+                <CardFooter className="flex items-center gap-2 w-full">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1"
+                    onClick={() => handleLike(item.id)}
+                    disabled={likeSubmitting === item.id}
+                  >
+                    <ThumbsUp className="h-4 w-4" />
+                    {item.likeCount}
+                  </Button>
+                  <span className="text-xs text-muted-foreground ml-2">Expires {new Date(item.expiresAt).toLocaleDateString()}</span>
+                </CardFooter>
+              </Card>
             ))}
-          </select>
-          <Input
-            className="flex-1"
-            placeholder="Write something nice..."
-            value={content}
-            onChange={e => setContent(e.target.value)}
-            maxLength={200}
-            disabled={submitting}
-          />
-          <Button type="submit" disabled={submitting || !content.trim()}>
-            {submitting ? 'Posting...' : 'Post'}
-          </Button>
-        </form>
-
-        <div className="space-y-4">
-          {isLoading && <div>Loading...</div>}
-          {error && <div className="text-red-500">Failed to load feedback.</div>}
-          {comments && comments.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">No feedback found.</div>
-          )}
-          {comments && comments.map((item: any) => (
-            <Card key={item.id} className="border-none shadow-sm">
-              <CardHeader className="pb-2 flex flex-row items-center gap-3">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={item.aboutUser?.image || "/placeholder-user.jpg"} alt={item.aboutUser?.name || 'User'} />
-                  <AvatarFallback className="bg-amber-100 text-amber-800 text-xs">
-                    {item.aboutUser?.name?.split(' ').map((n: string) => n[0]).join('') || '?'}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="text-sm font-medium text-amber-900">{item.aboutUser?.name || 'User'}</span>
-              </CardHeader>
-              <CardContent>
-                <p className="text-base text-muted-foreground">{item.content}</p>
-              </CardContent>
-              <CardFooter className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1"
-                  onClick={() => handleLike(item.id)}
-                  disabled={likeSubmitting === item.id}
-                >
-                  <ThumbsUp className="h-4 w-4" />
-                  {item.likeCount}
-                </Button>
-                <span className="text-xs text-muted-foreground ml-2">Expires {new Date(item.expiresAt).toLocaleDateString()}</span>
-              </CardFooter>
-            </Card>
-          ))}
+          </div>
         </div>
       </div>
     </div>
